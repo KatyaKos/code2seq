@@ -5,6 +5,7 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.UserDataKey;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,10 +53,38 @@ public final class Common {
         return Common.NameExpr.equals(type) && Common.MethodDeclaration.equals(parentType);
     }
 
+    private static void splitToNgrams(String word, int n, final List<String> to) {
+        String[] letters = word.split("");
+        int l = letters.length;
+        for(int i = 0; i < l; i++) {
+            if((i + n - 1) < l) {
+                int stop = i + n;
+                StringBuilder ngram = new StringBuilder(letters[i]);
+
+                for(int j = i + 1; j < stop; j++) {
+                    ngram.append(letters[j]);
+                }
+                to.add(ngram.toString());
+            }
+        }
+    }
+
     public static ArrayList<String> splitToSubtokens(String str1) {
         String str2 = str1.replace("|", " ");
         String str3 = str2.trim();
-        return Stream.of(str3.split("(?<=[a-z])(?=[A-Z])|_|[0-9]|(?<=[A-Z])(?=[A-Z][a-z])|\\s+"))
+
+        //Subtokens split
+        //return Stream.of(str3.split("(?<=[a-z])(?=[A-Z])|_|[0-9]|(?<=[A-Z])(?=[A-Z][a-z])|\\s+"))
+
+        //Letters split
+        //return Stream.of(str3.split(""))
+
+        // N-grams split
+        List<String> ngrams = new ArrayList<>();
+        for (int n = 3; n < 7; n++) {
+            splitToNgrams(str3, n, ngrams);
+        }
+        return Stream.of(ngrams.toArray(new String[0]))
                 .filter(s -> s.length() > 0).map(s -> Common.normalizeName(s, Common.EmptyString))
                 .filter(s -> s.length() > 0).collect(Collectors.toCollection(ArrayList::new));
     }
